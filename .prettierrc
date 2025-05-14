@@ -1,0 +1,15 @@
+{
+  "singleQuote": true,
+  "trailingComma": "none",
+  "singleAttributePerLine": true,
+  "printWidth": 80,
+  "tabWidth": 2,
+  "semi": true,
+  "arrowParens": "always",
+  "bracketSpacing": true,
+  "endOfLine": "lf",
+  "importOrder": ["^nestjs", "^@?\\w", "^[./]"],
+  "importOrderSeparation": true,
+  "importOrderSortSpecifiers": true,
+  "importOrderCaseInsensitive": true
+}
