@@ -28,18 +28,18 @@ export class AccessGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<Request>();
     const targetUserId = req.params?.id;
-    const refreshToken = req.cookies?.refresh_token;
+    const accessToken = req.cookies?.access_token;
     const onlyForAdmin = this.reflector.get(
       'onlyForAdmin',
       context.getHandler()
     );
 
-    if (!refreshToken) {
-      throw new UnauthorizedException('refresh token not found');
+    if (!accessToken) {
+      throw new UnauthorizedException('access token not found');
     }
 
-    const payload = await this.jwtService.verifyAsync(refreshToken, {
-      secret: process.env.JWT_REFRESH_SECRET
+    const payload = await this.jwtService.verifyAsync(accessToken, {
+      secret: process.env.JWT_ACCESS_SECRET
     });
     const userId = payload.sub;
 
@@ -48,13 +48,15 @@ export class AccessGuard implements CanActivate {
     try {
       currentUser = await this.usersService.findOne(userId);
     } catch {
-      throw new UnauthorizedException('invalid refresh token');
+      throw new UnauthorizedException('invalid access token');
     }
 
     if (
       (currentUser?.id === targetUserId && !onlyForAdmin) ||
       currentUser?.isAdmin
     ) {
+      req.user = currentUser;
+
       return true;
     }
 

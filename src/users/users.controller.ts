@@ -8,7 +8,8 @@ import {
   Delete,
   Put,
   UseGuards,
-  ParseUUIDPipe
+  ParseUUIDPipe,
+  Req
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
@@ -45,6 +46,7 @@ export class UsersController {
   @OnlyForAdmin()
   @UseGuards(AuthTokenGuard, AccessGuard)
   @Post()
+  @Serialize(GetUserDto)
   @ApiOperation({ summary: 'Создать пользователя' })
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create({ ...createUserDto });
@@ -56,9 +58,10 @@ export class UsersController {
   @ApiOperation({ summary: 'Обновить пользователя' })
   update(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
-    @Body() updateUserDto: UpdateUserDto
+    @Body() updateUserDto: UpdateUserDto,
+    @Req() req
   ) {
-    return this.usersService.update(id, updateUserDto);
+    return this.usersService.update(id, updateUserDto, req.user.isAdmin);
   }
 
   @OnlyForAdmin()

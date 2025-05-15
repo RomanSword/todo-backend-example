@@ -47,7 +47,7 @@ export class AuthTokenGuard implements CanActivate {
         user.username,
         user.id
       );
-      console.log('GENERATE NEW ACCESS TOKEN: ', newAccessToken);
+
       res.cookie('access_token', newAccessToken, {
         ...COOKIE_CONFIG,
         maxAge: MAX_AGE_ACCESS_TOKEN

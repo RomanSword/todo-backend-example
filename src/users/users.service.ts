@@ -74,25 +74,35 @@ export class UsersService {
     return this.repo.save(user);
   }
 
-  async update(id: string, updateDto: UpdateUserDto): Promise<User | null> {
+  async update(
+    id: string,
+    updateDto: UpdateUserDto,
+    ignoreOldPassword: boolean = false // Админ может игнорировать старый пароль
+  ): Promise<User | null> {
     const {
-      oldPassword: plainTextPassword,
-      refreshToken,
+      oldPassword: plainOldPassword,
+      refreshToken, // Токена не будет в dto, но обезопасим себя лишний раз
       ...restUpdateDto
     } = updateDto;
 
     const user = await this.findOne(id);
 
-    if (plainTextPassword && restUpdateDto.password && user?.password) {
-      const isMatch = await bcrypt.compare(plainTextPassword, user.password);
+    if (restUpdateDto.password) {
+      const newPassword = await bcrypt.hash(
+        restUpdateDto.password,
+        HASH_ROUNDS
+      );
 
-      if (isMatch) {
-        restUpdateDto.password = await bcrypt.hash(
-          restUpdateDto.password,
-          HASH_ROUNDS
-        );
-      } else {
-        throw new ConflictException('incorrect old password');
+      if (ignoreOldPassword) {
+        restUpdateDto.password = newPassword;
+      } else if (plainOldPassword && restUpdateDto.password && user?.password) {
+        const isMatch = await bcrypt.compare(plainOldPassword, user.password);
+
+        if (isMatch) {
+          restUpdateDto.password = newPassword;
+        } else {
+          throw new ConflictException('incorrect old password');
+        }
       }
     }
 
