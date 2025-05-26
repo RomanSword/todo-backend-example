@@ -6,6 +6,7 @@ import { LoggerMiddleware } from './common/middleware';
 import { TodosModule } from './todos/todos.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { typeOrmConfig } from '../ormconfig';
 
 @Module({
   imports: [
@@ -13,16 +14,7 @@ import { UsersModule } from './users/users.module';
       isGlobal: true,
       envFilePath: '.env'
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'brotherhood',
-      database: 'todo_list',
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true // Только для разработки
-    }),
+    TypeOrmModule.forRoot(typeOrmConfig),
     TodosModule,
     AuthModule,
     UsersModule

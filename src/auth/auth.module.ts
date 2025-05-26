@@ -5,7 +5,6 @@ import { PassportModule } from '@nestjs/passport';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { JwtStrategy } from './jwt.strategy';
 import { MAX_AGE_ACCESS_TOKEN } from './const';
 import { AuthTokenGuard } from './guards/auth-token.guard';
 
@@ -19,7 +18,7 @@ import { AuthTokenGuard } from './guards/auth-token.guard';
     })
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, AuthTokenGuard],
+  providers: [AuthService, AuthTokenGuard],
   exports: [AuthService, AuthTokenGuard, JwtModule]
 })
 export class AuthModule {}

@@ -20,10 +20,11 @@ $ npm run start:prod
 
 ## Что интересного внутри?
 
-1. БД - PostgreSQL, ORM - TypeORM
+1. БД - PostgreSQL, ORM, Миграции - TypeORM
 2. Авторизация реализована на access и refresh jwt токенах. Токены помещаются в cookie.
 3. Есть разделение на администратора и обычного пользователя по access.guard
 4. Используются DTO объекты на базе class-validator
 5. Используется сериализация DTO объектов, отдаваемых с endpoint'ов на базе class-transformer
 6. Есть Swagger
 7. Есть базовый логгер
+8. Все в докере, есть сервисы: postgres, pgadmin и backend. Все работает через makefile

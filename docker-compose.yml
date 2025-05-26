@@ -1,0 +1,46 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    restart: unless-stopped
+    ports:
+      - '${POSTGRES_OUTER_PORT}:${POSTGRES_INNER_PORT}'
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: unless-stopped
+    ports:
+      - '${PGADMIN_OUTER_PORT}:${PGADMIN_INNER_PORT}'
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - ./pgadmin.json:/pgadmin4/servers.json
+    logging:
+      driver: 'none'
+
+  backend:
+    container_name: nest-backend
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - '${PORT}:${PORT}'
+    depends_on:
+      - postgres
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run start:dev
+
+volumes:
+  postgres_data:
+  pgadmin_data:
