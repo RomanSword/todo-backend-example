@@ -14,9 +14,9 @@ import { RegisterDto } from 'src/auth/dto/register.dto';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { handleTypeOrmError } from 'src/common/utils/typeorm-error-handler';
 
 const HASH_ROUNDS = 10;
-const NOT_UNIQUE_ERROR_SQL_CONSTRAINT = '23505';
 
 @Injectable()
 export class UsersService {
@@ -43,7 +43,11 @@ export class UsersService {
     return this.repo.findOne({ where: { username } });
   }
 
-  async register({ username, password, email }: RegisterDto): Promise<User> {
+  async register({
+    username,
+    password,
+    email
+  }: RegisterDto): Promise<User | undefined> {
     const hashed = await bcrypt.hash(password, HASH_ROUNDS);
     const user = this.repo.create({
       username,
@@ -56,11 +60,8 @@ export class UsersService {
     try {
       return await this.repo.save(user);
     } catch (error) {
-      if (error.code === NOT_UNIQUE_ERROR_SQL_CONSTRAINT) {
-        throw new ConflictException('username already taken');
-      }
-
-      throw error;
+      handleTypeOrmError(error);
+      return;
     }
   }
 
@@ -78,10 +79,10 @@ export class UsersService {
     id: string,
     updateDto: UpdateUserDto,
     ignoreOldPassword: boolean = false // Админ может игнорировать старый пароль
-  ): Promise<User | null> {
+  ): Promise<User | null | undefined> {
     const {
       oldPassword: plainOldPassword,
-      refreshToken, // Токена не будет в dto, но обезопасим себя лишний раз
+      refreshToken: _refreshToken, // Токена не будет в dto, но обезопасим себя лишний раз
       ...restUpdateDto
     } = updateDto;
 
@@ -111,11 +112,8 @@ export class UsersService {
     try {
       await this.repo.update(id, updatedUser);
     } catch (error) {
-      if (error.code === NOT_UNIQUE_ERROR_SQL_CONSTRAINT) {
-        throw new ConflictException('username already taken');
-      }
-
-      throw error;
+      handleTypeOrmError(error);
+      return;
     }
 
     return this.findOne(id);

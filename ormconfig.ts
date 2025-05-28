@@ -36,8 +36,6 @@ for (const dbKey in dbEnvFields) {
   }
 }
 
-console.log('TypeORM config: ', typeOrmConfig);
-
 export default new DataSource({
   ...typeOrmConfig,
   migrations: ['src/common/migrations/*.ts']

@@ -1,5 +1,6 @@
 import { Controller, Post, Body, Res, UseGuards, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Response } from 'express';
 
 import { Serialize } from 'src/common/decorators';
 import { GetUserDto } from 'src/users/dto/get-user.dto';
@@ -22,7 +23,10 @@ export class AuthController {
   @Post('register')
   @Serialize(GetUserDto)
   @ApiOperation({ summary: 'Регистрация пользователя' })
-  register(@Res({ passthrough: true }) res, @Body() body: RegisterDto) {
+  register(
+    @Res({ passthrough: true }) res: Response,
+    @Body() body: RegisterDto
+  ) {
     res.clearCookie('access_token');
     res.clearCookie('refresh_token');
 
@@ -31,7 +35,10 @@ export class AuthController {
 
   @Post('login')
   @ApiOperation({ summary: 'Вход пользователя' })
-  async login(@Res({ passthrough: true }) res, @Body() body: LoginDto) {
+  async login(
+    @Res({ passthrough: true }) res: Response,
+    @Body() body: LoginDto
+  ) {
     const tokens = await this.authService.login(body.username, body.password);
 
     res.cookie('access_token', tokens.accessToken, {
@@ -50,10 +57,10 @@ export class AuthController {
   @UseGuards(AuthTokenGuard)
   @Post('logout')
   @ApiOperation({ summary: 'Выход пользователя' })
-  logout(@Res({ passthrough: true }) res, @Req() req) {
+  logout(@Res({ passthrough: true }) res: Response, @Req() req: Request) {
     res.clearCookie('access_token');
     res.clearCookie('refresh_token');
 
-    return this.authService.logout(req.user.id);
+    return req.user?.id ? this.authService.logout(req.user.id) : false;
   }
 }

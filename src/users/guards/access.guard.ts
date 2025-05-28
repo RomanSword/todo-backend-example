@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
-import { Request } from 'express';
 
 import { UsersService } from '../users.service';
 import { User } from '../entities/user.entity';
@@ -27,9 +26,10 @@ export class AccessGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<Request>();
+
     const targetUserId = req.params?.id;
     const accessToken = req.cookies?.access_token;
-    const onlyForAdmin = this.reflector.get(
+    const onlyForAdmin = this.reflector.get<ExecutionContext, string>(
       'onlyForAdmin',
       context.getHandler()
     );
@@ -38,7 +38,7 @@ export class AccessGuard implements CanActivate {
       throw new UnauthorizedException('access token not found');
     }
 
-    const payload = await this.jwtService.verifyAsync(accessToken, {
+    const payload = await this.jwtService.verifyAsync<JwtPayload>(accessToken, {
       secret: process.env.JWT_ACCESS_SECRET
     });
     const userId = payload.sub;

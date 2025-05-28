@@ -1,6 +1,6 @@
 import { Injectable, Logger, NestMiddleware } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction } from 'express';
 
 @Injectable()
 export class LoggerMiddleware implements NestMiddleware {
@@ -13,24 +13,28 @@ export class LoggerMiddleware implements NestMiddleware {
     const userAgent = req.get('user-agent') || '';
     const ip = req.ip;
 
-    res.on('finish', async () => {
+    res.on('finish', () => {
       const { statusCode } = res;
       const contentLength = res.get('content-length');
       const accessToken = req.cookies?.access_token;
 
-      let message = `${method} ${originalUrl} ${statusCode}`;
-
       if (accessToken) {
-        const payload = await this.jwtService.verifyAsync(accessToken, {
-          secret: process.env.JWT_ACCESS_SECRET
-        });
+        this.jwtService
+          .verifyAsync<JwtPayload>(accessToken, {
+            secret: process.env.JWT_ACCESS_SECRET
+          })
+          .then((payload) => {
+            let message = `${method} ${originalUrl} ${statusCode}`;
 
-        message = `${message} USER: ${payload.sub}`;
+            message = `${message} IP: ${ip} CONTENT_LENGTH: ${contentLength || 0} USER_AGENT: ${userAgent}`;
+            message = `${message} USER: ${payload.sub}`;
+
+            this.logger.log(message);
+          })
+          .catch((error) => {
+            this.logger.log('While loggin something went wrong: ', error);
+          });
       }
-
-      message = `${message} IP: ${ip} CONTENT_LENGTH: ${contentLength || 0} USER_AGENT: ${userAgent}`;
-
-      this.logger.log(message);
     });
 
     next();

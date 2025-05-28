@@ -32,4 +32,10 @@ async function bootstrap() {
   await app.listen(3000);
 }
 
-bootstrap();
+bootstrap()
+  .then(() => {
+    console.log('App started!');
+  })
+  .catch(() => {
+    console.log('App NOT started!');
+  });

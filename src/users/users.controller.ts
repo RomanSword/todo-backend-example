@@ -1,4 +1,3 @@
-import { plainToInstance } from 'class-transformer';
 import {
   Controller,
   Get,
@@ -59,9 +58,9 @@ export class UsersController {
   update(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() updateUserDto: UpdateUserDto,
-    @Req() req
+    @Req() req: Request
   ) {
-    return this.usersService.update(id, updateUserDto, req.user.isAdmin);
+    return this.usersService.update(id, updateUserDto, req.user?.isAdmin);
   }
 
   @OnlyForAdmin()

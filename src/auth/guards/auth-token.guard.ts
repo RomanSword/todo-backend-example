@@ -4,7 +4,6 @@ import {
   Injectable,
   UnauthorizedException
 } from '@nestjs/common';
-import { Request, Response } from 'express';
 
 import { AuthService } from '../auth.service';
 import { COOKIE_CONFIG, MAX_AGE_ACCESS_TOKEN } from '../const';
@@ -34,7 +33,7 @@ export class AuthTokenGuard implements CanActivate {
       req.user = user;
 
       return true;
-    } catch (err) {
+    } catch {
       if (!refreshToken) {
         throw new UnauthorizedException('all tokens expired');
       }
@@ -43,7 +42,7 @@ export class AuthTokenGuard implements CanActivate {
 
       if (!user) throw new UnauthorizedException('invalid refresh token');
 
-      const newAccessToken = await this.authService.generateAccessToken(
+      const newAccessToken = this.authService.generateAccessToken(
         user.username,
         user.id
       );

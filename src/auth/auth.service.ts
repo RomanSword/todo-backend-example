@@ -6,6 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import { MAX_AGE_ACCESS_TOKEN, MAX_AGE_REFRESH_TOKEN } from './const';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -14,15 +15,15 @@ export class AuthService {
     private jwtService: JwtService
   ) {}
 
-  async validateUser(username: string, password: string): Promise<any> {
+  async validateUser(username: string, password: string): Promise<User | null> {
     const user = await this.usersService.findByUsername(username);
     const isPasswordsSimular =
       user && (await bcrypt.compare(password, user.password));
 
     if (isPasswordsSimular) {
-      const { password, ...result } = user;
+      user.password = '';
 
-      return result;
+      return user;
     }
 
     return null;
@@ -79,13 +80,15 @@ export class AuthService {
   }
 
   async validateToken(token: string, secret?: string) {
-    const payload = await this.jwtService.verifyAsync(token, { secret });
+    const payload = await this.jwtService.verifyAsync<JwtPayload>(token, {
+      secret
+    });
     const user = await this.usersService.findOne(payload.sub);
 
     return user || null;
   }
 
-  async generateAccessToken(username: string, userId: string) {
+  generateAccessToken(username: string, userId: string) {
     return this.jwtService.sign(
       { username, sub: userId },
       {
